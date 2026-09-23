@@ -34,7 +34,7 @@ const DEFAULT_SECTIONS = [
     title: '¿Tienes alguna pregunta?',
     body: 'Escríbenos y con gusto te ayudamos.',
     buttonText: 'Contáctanos',
-    buttonUrl: '#contacto',
+    buttonUrl: '/contacto',
   },
 ];
 

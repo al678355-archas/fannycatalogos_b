@@ -118,6 +118,20 @@ export const settingsSchema = z
       'La URL del catálogo debe empezar con https://',
     ),
     pdfFooterText: text(200),
+    // Página de contacto
+    contactTitle: text(120, { required: true }),
+    contactSubtitle: text(300),
+    contactText: text(2000),
+    contactWhatsapp: z.preprocess(
+      (v) => (typeof v === 'string' ? v.replace(/[\s()+-]/g, '') : v),
+      z.string().regex(/^(\d{8,15})?$/, 'WhatsApp: número con lada internacional, sólo dígitos (ej. 5215512345678)'),
+    ),
+    contactWhatsappMessage: text(300),
+    contactHours: text(500),
+    contactMapUrl: text(500).refine(
+      (v) => v === '' || /^https:\/\//i.test(v),
+      'El enlace del mapa debe empezar con https://',
+    ),
   })
   .partial();
 
@@ -135,6 +149,7 @@ export const headerSchema = z
     bgColor: hexColor(),
     textColor: hexColor(),
     sticky: z.boolean(),
+    showAdminLink: z.boolean(),
   })
   .partial();
 

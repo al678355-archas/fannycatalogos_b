@@ -20,7 +20,7 @@ export const DEFAULTS = {
     brandText: 'Mi Marca',
     links: [{ label: 'Inicio', url: '/', visible: true }],
     ctaText: 'Contáctanos',
-    ctaUrl: '#contacto',
+    ctaUrl: '/contacto',
   },
   footer: {
     text: 'Gracias por visitarnos.',
@@ -28,6 +28,7 @@ export const DEFAULTS = {
     links: [
       { label: 'Inicio', url: '/', visible: true },
       { label: 'Catálogo', url: '/catalogo', visible: true },
+      { label: 'Contacto', url: '/contacto', visible: true },
     ],
     socials: [],
   },
@@ -60,6 +61,15 @@ export function serializeSite(s) {
     catalogTitle: s.catalogTitle,
     catalogSubtitle: s.catalogSubtitle,
     catalogUrl: catalogUrlFrom(s),
+    contact: {
+      title: s.contactTitle,
+      subtitle: s.contactSubtitle,
+      text: s.contactText,
+      whatsapp: s.contactWhatsapp,
+      whatsappMessage: s.contactWhatsappMessage,
+      hours: s.contactHours,
+      mapUrl: s.contactMapUrl,
+    },
     logo: serializeImage(s.logo),
     favicon: serializeImage(s.favicon),
     ogImage: serializeImage(s.ogImage),

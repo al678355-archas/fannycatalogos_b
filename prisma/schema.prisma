@@ -14,17 +14,17 @@ datasource db {
 }
 
 model AdminUser {
-  id           String   @id @default(cuid())
-  name         String   @db.VarChar(120)
+  id           String    @id @default(cuid())
+  name         String    @db.VarChar(120)
   // Usuario de acceso (puede ser un nombre de usuario o un email)
-  username     String   @unique @db.VarChar(160)
+  username     String    @unique @db.VarChar(160)
   passwordHash String
-  isActive     Boolean  @default(true)
+  isActive     Boolean   @default(true)
   // Se incrementa al cambiar la contraseña o desactivar para invalidar sesiones activas
-  tokenVersion Int      @default(0)
+  tokenVersion Int       @default(0)
   lastLoginAt  DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   @@map("admin_users")
 }
@@ -43,12 +43,12 @@ model ImageAsset {
   alt        String?  @db.VarChar(200)
   createdAt  DateTime @default(now())
 
-  products        Product[]
-  sections        ContentSection[]
-  siteLogos       SiteSettings[]   @relation("SiteLogo")
-  siteFavicons    SiteSettings[]   @relation("SiteFavicon")
-  siteOgImages    SiteSettings[]   @relation("SiteOgImage")
-  footerLogos     FooterSettings[] @relation("FooterLogo")
+  products     Product[]
+  sections     ContentSection[]
+  siteLogos    SiteSettings[]   @relation("SiteLogo")
+  siteFavicons SiteSettings[]   @relation("SiteFavicon")
+  siteOgImages SiteSettings[]   @relation("SiteOgImage")
+  footerLogos  FooterSettings[] @relation("FooterLogo")
 
   @@map("image_assets")
 }
@@ -72,70 +72,80 @@ model Product {
 
 // Configuración general (fila única, id = 1)
 model SiteSettings {
-  id              Int         @id @default(1)
-  siteName        String      @default("Mi Marca") @db.VarChar(120)
-  seoTitle        String      @default("Mi Marca") @db.VarChar(120)
-  seoDescription  String      @default("") @db.VarChar(300)
+  id                     Int         @id @default(1)
+  siteName               String      @default("Mi Marca") @db.VarChar(120)
+  seoTitle               String      @default("Mi Marca") @db.VarChar(120)
+  seoDescription         String      @default("") @db.VarChar(300)
   // Paleta de colores editable (ver src/utils/theme.js para las claves)
-  theme           Json        @default("{}")
-  currency        String      @default("MXN") @db.VarChar(3)
-  locale          String      @default("es-MX") @db.VarChar(10)
-  catalogTitle    String      @default("Catálogo") @db.VarChar(120)
-  catalogSubtitle String      @default("") @db.VarChar(300)
+  theme                  Json        @default("{}")
+  currency               String      @default("MXN") @db.VarChar(3)
+  locale                 String      @default("es-MX") @db.VarChar(10)
+  catalogTitle           String      @default("Catálogo") @db.VarChar(120)
+  catalogSubtitle        String      @default("") @db.VarChar(300)
   // URL pública del catálogo (opcional). Si está vacía se usa FRONTEND_URL + /catalogo
-  catalogUrl      String      @default("") @db.VarChar(300)
-  pdfFooterText   String      @default("") @db.VarChar(200)
-  logoId          String?
-  logo            ImageAsset? @relation("SiteLogo", fields: [logoId], references: [id], onDelete: SetNull)
-  faviconId       String?
-  favicon         ImageAsset? @relation("SiteFavicon", fields: [faviconId], references: [id], onDelete: SetNull)
-  ogImageId       String?
-  ogImage         ImageAsset? @relation("SiteOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
-  updatedAt       DateTime    @updatedAt
+  catalogUrl             String      @default("") @db.VarChar(300)
+  pdfFooterText          String      @default("") @db.VarChar(200)
+  // Página de contacto (/contacto). Email, teléfono, dirección y redes se toman del footer.
+  contactTitle           String      @default("Contáctanos") @db.VarChar(120)
+  contactSubtitle        String      @default("Estamos para ayudarte") @db.VarChar(300)
+  contactText            String      @default("") @db.VarChar(2000)
+  contactWhatsapp        String      @default("") @db.VarChar(20)
+  contactWhatsappMessage String      @default("Hola, me gustaría obtener más información.") @db.VarChar(300)
+  contactHours           String      @default("") @db.VarChar(500)
+  contactMapUrl          String      @default("") @db.VarChar(500)
+  logoId                 String?
+  logo                   ImageAsset? @relation("SiteLogo", fields: [logoId], references: [id], onDelete: SetNull)
+  faviconId              String?
+  favicon                ImageAsset? @relation("SiteFavicon", fields: [faviconId], references: [id], onDelete: SetNull)
+  ogImageId              String?
+  ogImage                ImageAsset? @relation("SiteOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
+  updatedAt              DateTime    @updatedAt
 
   @@map("site_settings")
 }
 
 model HeaderSettings {
-  id           Int      @id @default(1)
-  brandText    String   @default("Mi Marca") @db.VarChar(80)
-  tagline      String   @default("") @db.VarChar(120)
-  showLogo     Boolean  @default(true)
-  showBrand    Boolean  @default(true)
-  catalogLabel String   @default("Catálogo") @db.VarChar(40)
+  id            Int      @id @default(1)
+  brandText     String   @default("Mi Marca") @db.VarChar(80)
+  tagline       String   @default("") @db.VarChar(120)
+  showLogo      Boolean  @default(true)
+  showBrand     Boolean  @default(true)
+  catalogLabel  String   @default("Catálogo") @db.VarChar(40)
   // [{ label, url, visible }]
-  links        Json     @default("[]")
-  ctaText      String   @default("") @db.VarChar(40)
-  ctaUrl       String   @default("") @db.VarChar(300)
-  showCta      Boolean  @default(false)
-  bgColor      String   @default("#FFF8F9") @db.VarChar(9)
-  textColor    String   @default("#34242A") @db.VarChar(9)
-  sticky       Boolean  @default(true)
-  updatedAt    DateTime @updatedAt
+  links         Json     @default("[]")
+  ctaText       String   @default("") @db.VarChar(40)
+  ctaUrl        String   @default("") @db.VarChar(300)
+  showCta       Boolean  @default(false)
+  bgColor       String   @default("#FFF8F9") @db.VarChar(9)
+  textColor     String   @default("#34242A") @db.VarChar(9)
+  sticky        Boolean  @default(true)
+  // Botón de candado que lleva al inicio de sesión del panel
+  showAdminLink Boolean  @default(true)
+  updatedAt     DateTime @updatedAt
 
   @@map("header_settings")
 }
 
 model FooterSettings {
-  id           Int         @id @default(1)
-  text         String      @default("") @db.VarChar(500)
-  copyright    String      @default("") @db.VarChar(160)
-  email        String      @default("") @db.VarChar(160)
-  phone        String      @default("") @db.VarChar(40)
-  address      String      @default("") @db.VarChar(200)
+  id          Int         @id @default(1)
+  text        String      @default("") @db.VarChar(500)
+  copyright   String      @default("") @db.VarChar(160)
+  email       String      @default("") @db.VarChar(160)
+  phone       String      @default("") @db.VarChar(40)
+  address     String      @default("") @db.VarChar(200)
   // [{ label, url, visible }]
-  links        Json     @default("[]")
+  links       Json        @default("[]")
   // [{ network, url, visible }]
-  socials      Json     @default("[]")
-  bgColor      String      @default("#F9E1E6") @db.VarChar(9)
-  textColor    String      @default("#4A3238") @db.VarChar(9)
-  showLogo     Boolean     @default(true)
-  showContact  Boolean     @default(true)
-  showLinks    Boolean     @default(true)
-  showSocials  Boolean     @default(true)
-  logoId       String?
-  logo         ImageAsset? @relation("FooterLogo", fields: [logoId], references: [id], onDelete: SetNull)
-  updatedAt    DateTime    @updatedAt
+  socials     Json        @default("[]")
+  bgColor     String      @default("#F9E1E6") @db.VarChar(9)
+  textColor   String      @default("#4A3238") @db.VarChar(9)
+  showLogo    Boolean     @default(true)
+  showContact Boolean     @default(true)
+  showLinks   Boolean     @default(true)
+  showSocials Boolean     @default(true)
+  logoId      String?
+  logo        ImageAsset? @relation("FooterLogo", fields: [logoId], references: [id], onDelete: SetNull)
+  updatedAt   DateTime    @updatedAt
 
   @@map("footer_settings")
 }
@@ -151,7 +161,7 @@ model ContentSection {
   buttonText String      @default("") @db.VarChar(60)
   buttonUrl  String      @default("") @db.VarChar(300)
   // Elementos adicionales (p. ej. tarjetas de "features"): [{ title, text }]
-  items      Json     @default("[]")
+  items      Json        @default("[]")
   imageId    String?
   image      ImageAsset? @relation(fields: [imageId], references: [id], onDelete: SetNull)
   bgColor    String      @default("") @db.VarChar(9)
