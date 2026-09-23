@@ -1,4 +1,3 @@
-import QRCode from 'qrcode';
 import { getSiteSettings, getFooter, catalogUrlFrom } from './siteService.js';
 import { listActiveProducts } from './productService.js';
 import { readImageBuffer } from './imageService.js';
@@ -69,13 +68,8 @@ export async function getCatalogUrl() {
   return catalogUrlFrom(await getSiteSettings());
 }
 
-export async function buildQr(url, { format = 'png', size = 512 } = {}) {
-  const options = {
-    errorCorrectionLevel: 'M',
-    margin: 2,
-    width: size,
-    color: { dark: '#2B1D22', light: '#FFFFFF' },
-  };
-  if (format === 'svg') return QRCode.toString(url, { ...options, type: 'svg' });
-  return QRCode.toBuffer(url, { ...options, type: 'png' });
+/** URL pública del catálogo + logo del sitio (si existe) para el código QR */
+export async function getCatalogQrData() {
+  const settings = await getSiteSettings();
+  return { url: catalogUrlFrom(settings), logo: await safeRead(settings.logo) };
 }
