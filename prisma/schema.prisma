@@ -1,0 +1,166 @@
+// Esquema de base de datos (PostgreSQL / Neon)
+// DATABASE_URL -> conexión con pooling (runtime)
+// DIRECT_URL   -> conexión directa (migraciones)
+
+generator client {
+  // Las consultas usan el driver pg de Node (ver src/config/prisma.js)
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  name         String   @db.VarChar(120)
+  // Usuario de acceso (puede ser un nombre de usuario o un email)
+  username     String   @unique @db.VarChar(160)
+  passwordHash String
+  isActive     Boolean  @default(true)
+  // Se incrementa al cambiar la contraseña o desactivar para invalidar sesiones activas
+  tokenVersion Int      @default(0)
+  lastLoginAt  DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("admin_users")
+}
+
+// Archivos subidos. El binario vive en el proveedor de storage (local / Cloudinary),
+// en la base sólo se guarda la URL y los metadatos.
+model ImageAsset {
+  id         String   @id @default(cuid())
+  url        String
+  storageKey String   @unique
+  provider   String   @db.VarChar(30)
+  mimeType   String   @db.VarChar(60)
+  size       Int
+  width      Int?
+  height     Int?
+  alt        String?  @db.VarChar(200)
+  createdAt  DateTime @default(now())
+
+  products        Product[]
+  sections        ContentSection[]
+  siteLogos       SiteSettings[]   @relation("SiteLogo")
+  siteFavicons    SiteSettings[]   @relation("SiteFavicon")
+  siteOgImages    SiteSettings[]   @relation("SiteOgImage")
+  footerLogos     FooterSettings[] @relation("FooterLogo")
+
+  @@map("image_assets")
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  name        String      @db.VarChar(150)
+  description String      @default("") @db.VarChar(2000)
+  // Decimal evita errores de precisión de punto flotante en valores monetarios
+  price       Decimal     @db.Decimal(12, 2)
+  isActive    Boolean     @default(true)
+  sortOrder   Int         @default(0)
+  imageId     String?
+  image       ImageAsset? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([isActive, sortOrder])
+  @@map("products")
+}
+
+// Configuración general (fila única, id = 1)
+model SiteSettings {
+  id              Int         @id @default(1)
+  siteName        String      @default("Mi Marca") @db.VarChar(120)
+  seoTitle        String      @default("Mi Marca") @db.VarChar(120)
+  seoDescription  String      @default("") @db.VarChar(300)
+  // Paleta de colores editable (ver src/utils/theme.js para las claves)
+  theme           Json        @default("{}")
+  currency        String      @default("MXN") @db.VarChar(3)
+  locale          String      @default("es-MX") @db.VarChar(10)
+  catalogTitle    String      @default("Catálogo") @db.VarChar(120)
+  catalogSubtitle String      @default("") @db.VarChar(300)
+  // URL pública del catálogo (opcional). Si está vacía se usa FRONTEND_URL + /catalogo
+  catalogUrl      String      @default("") @db.VarChar(300)
+  pdfFooterText   String      @default("") @db.VarChar(200)
+  logoId          String?
+  logo            ImageAsset? @relation("SiteLogo", fields: [logoId], references: [id], onDelete: SetNull)
+  faviconId       String?
+  favicon         ImageAsset? @relation("SiteFavicon", fields: [faviconId], references: [id], onDelete: SetNull)
+  ogImageId       String?
+  ogImage         ImageAsset? @relation("SiteOgImage", fields: [ogImageId], references: [id], onDelete: SetNull)
+  updatedAt       DateTime    @updatedAt
+
+  @@map("site_settings")
+}
+
+model HeaderSettings {
+  id           Int      @id @default(1)
+  brandText    String   @default("Mi Marca") @db.VarChar(80)
+  tagline      String   @default("") @db.VarChar(120)
+  showLogo     Boolean  @default(true)
+  showBrand    Boolean  @default(true)
+  catalogLabel String   @default("Catálogo") @db.VarChar(40)
+  // [{ label, url, visible }]
+  links        Json     @default("[]")
+  ctaText      String   @default("") @db.VarChar(40)
+  ctaUrl       String   @default("") @db.VarChar(300)
+  showCta      Boolean  @default(false)
+  bgColor      String   @default("#FFF8F9") @db.VarChar(9)
+  textColor    String   @default("#34242A") @db.VarChar(9)
+  sticky       Boolean  @default(true)
+  updatedAt    DateTime @updatedAt
+
+  @@map("header_settings")
+}
+
+model FooterSettings {
+  id           Int         @id @default(1)
+  text         String      @default("") @db.VarChar(500)
+  copyright    String      @default("") @db.VarChar(160)
+  email        String      @default("") @db.VarChar(160)
+  phone        String      @default("") @db.VarChar(40)
+  address      String      @default("") @db.VarChar(200)
+  // [{ label, url, visible }]
+  links        Json     @default("[]")
+  // [{ network, url, visible }]
+  socials      Json     @default("[]")
+  bgColor      String      @default("#F9E1E6") @db.VarChar(9)
+  textColor    String      @default("#4A3238") @db.VarChar(9)
+  showLogo     Boolean     @default(true)
+  showContact  Boolean     @default(true)
+  showLinks    Boolean     @default(true)
+  showSocials  Boolean     @default(true)
+  logoId       String?
+  logo         ImageAsset? @relation("FooterLogo", fields: [logoId], references: [id], onDelete: SetNull)
+  updatedAt    DateTime    @updatedAt
+
+  @@map("footer_settings")
+}
+
+// Secciones del cuerpo de la página principal
+model ContentSection {
+  id         String      @id @default(cuid())
+  // hero | text | imageText | features | cta
+  type       String      @db.VarChar(20)
+  title      String      @default("") @db.VarChar(200)
+  subtitle   String      @default("") @db.VarChar(300)
+  body       String      @default("") @db.VarChar(5000)
+  buttonText String      @default("") @db.VarChar(60)
+  buttonUrl  String      @default("") @db.VarChar(300)
+  // Elementos adicionales (p. ej. tarjetas de "features"): [{ title, text }]
+  items      Json     @default("[]")
+  imageId    String?
+  image      ImageAsset? @relation(fields: [imageId], references: [id], onDelete: SetNull)
+  bgColor    String      @default("") @db.VarChar(9)
+  textColor  String      @default("") @db.VarChar(9)
+  visible    Boolean     @default(true)
+  sortOrder  Int         @default(0)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@index([visible, sortOrder])
+  @@map("content_sections")
+}
