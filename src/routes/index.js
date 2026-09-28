@@ -9,6 +9,7 @@ import * as content from '../controllers/contentController.js';
 import * as site from '../controllers/siteController.js';
 import * as images from '../controllers/imageController.js';
 import * as catalog from '../controllers/catalogController.js';
+import { health } from '../controllers/healthController.js';
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -28,6 +29,9 @@ const pdfLimiter = rateLimit({
 });
 
 export const router = Router();
+
+/* Health check (keep-alive del frontend) */
+router.get('/health', health);
 
 /* Auth */
 router.post('/auth/login', loginLimiter, auth.login);

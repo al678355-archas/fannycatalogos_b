@@ -4,6 +4,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { env } from './config/env.js';
 import { router } from './routes/index.js';
+import { health } from './controllers/healthController.js';
 import { originCheck } from './middleware/originCheck.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { UPLOADS_DIR } from './services/storage/localStorage.js';
@@ -32,7 +33,8 @@ export function createApp() {
   app.use(cookieParser());
   app.use(originCheck);
 
-  app.get('/health', (_req, res) => res.json({ ok: true }));
+  // Usado por Render (healthCheckPath); /api/health usa el mismo controlador
+  app.get('/health', health);
 
   // Archivos subidos con el proveedor local
   app.use(
