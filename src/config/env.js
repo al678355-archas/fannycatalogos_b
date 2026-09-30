@@ -37,6 +37,8 @@ export const env = Object.freeze({
   frontendOrigins,
   publicFrontendUrl: frontendOrigins[0],
   backendUrl: (process.env.BACKEND_URL || '').replace(/\/+$/, ''),
+  // Render define RENDER_EXTERNAL_URL automáticamente en cada servicio web
+  keepAliveUrl: (process.env.BACKEND_URL || process.env.RENDER_EXTERNAL_URL || '').replace(/\/+$/, ''),
   storageDriver: (process.env.STORAGE_DRIVER || 'local').toLowerCase(),
   maxUploadBytes: (Number(process.env.MAX_UPLOAD_MB) || 5) * 1024 * 1024,
   cloudinary: {
