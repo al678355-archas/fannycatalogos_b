@@ -9,6 +9,7 @@ export function serializeProduct(p, { admin = false } = {}) {
     id: p.id,
     name: p.name,
     description: p.description,
+    category: p.category,
     price: p.price.toFixed(2), // Decimal -> "1250.00" (sin pérdida de precisión)
     image: serializeImage(p.image),
     sortOrder: p.sortOrder,

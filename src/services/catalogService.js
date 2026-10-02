@@ -2,6 +2,7 @@ import { getSiteSettings, getFooter, catalogUrlFrom } from './siteService.js';
 import { listActiveProducts } from './productService.js';
 import { readImageBuffer } from './imageService.js';
 import { resolveTheme } from '../utils/theme.js';
+import { buildQr } from './qrService.js';
 
 const IMAGE_CONCURRENCY = 6;
 
@@ -42,12 +43,18 @@ export async function buildCatalogPdfData() {
     mapLimited(products, IMAGE_CONCURRENCY, (p) => safeRead(p.image)),
   ]);
 
+  const catalogUrl = catalogUrlFrom(settings);
+  const qr = await buildQr(catalogUrl, { size: 360, logo }).catch((err) => {
+    console.warn('[pdf] No se pudo generar el QR:', err.message);
+    return null;
+  });
+
   return {
     site: {
       siteName: settings.siteName,
       catalogTitle: settings.catalogTitle,
       catalogSubtitle: settings.catalogSubtitle,
-      catalogUrl: catalogUrlFrom(settings),
+      catalogUrl,
       currency: settings.currency,
       locale: settings.locale,
       pdfFooterText: settings.pdfFooterText,
@@ -55,9 +62,11 @@ export async function buildCatalogPdfData() {
     },
     contact: { email: footer.email, phone: footer.phone, address: footer.address },
     logo,
+    qr,
     products: products.map((p, i) => ({
       name: p.name,
       description: p.description,
+      category: p.category,
       price: p.price.toFixed(2),
       imageBuffer: imageBuffers[i],
     })),

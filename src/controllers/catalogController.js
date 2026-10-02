@@ -23,13 +23,15 @@ export async function qr(req, res) {
 export async function pdf(req, res) {
   const data = await buildCatalogPdfData();
   const date = new Date().toISOString().slice(0, 10);
+  // ?style=plain → blanco y negro; por defecto usa los colores de la página pública
+  const styled = req.query.style !== 'plain';
   const disposition = req.query.inline === '1' ? 'inline' : 'attachment';
 
   res.set({
     'Content-Type': 'application/pdf',
-    'Content-Disposition': `${disposition}; filename="catalogo-${date}.pdf"`,
+    'Content-Disposition': `${disposition}; filename="catalogo-${date}${styled ? '' : '-sin-estilo'}.pdf"`,
     // Siempre se genera con los productos actuales
     'Cache-Control': 'no-store',
   });
-  renderCatalogPdf(data, res);
+  renderCatalogPdf(data, res, { styled });
 }

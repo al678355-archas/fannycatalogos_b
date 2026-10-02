@@ -67,6 +67,7 @@ export const changePasswordSchema = z.object({
 const productFields = {
   name: text(150, { required: true }),
   description: text(2000),
+  category: text(80),
   price: price(),
   isActive: z.boolean(),
   sortOrder: z.coerce.number().int().min(0).max(100000),
@@ -75,6 +76,7 @@ const productFields = {
 
 export const createProductSchema = z.object(productFields).partial({
   description: true,
+  category: true,
   isActive: true,
   sortOrder: true,
   imageId: true,
